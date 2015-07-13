@@ -1,8 +1,8 @@
 #include <pebble.h>
 #include "BavarianClock.h"
-// http://developer.getpebble.com/guides/publishing-tools/pebble-tool/
+
 static Window *window;
-//Anzeige fuer bayerischen Text
+//Array of textlayers
 static TextLayer *bav_text_layer[4] ;
 GBitmap *flag_bitmap, *bt_ok_bitmap, *bt_not_ok_bitmap;
 BitmapLayer *flag_layer, *bt_layer;
@@ -11,42 +11,35 @@ static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
   layer_mark_dirty(window_get_root_layer(window));
 }
 
-/******* Alle Sekunden *********/
 
+//All Seconds
 static void bav_update_proc(Layer *layer, GContext *ctx) {
 
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
 
-  //int32_t seconds = t->tm_sec ;
-  // Bayrisch
+  // Bavarian Time starts here
   int32_t minutes = t->tm_min;
 
   int fmin = (minutes / 5) ;
-  //Minuten
+  //Minutes
   text_layer_set_text(bav_text_layer[0], bav_minutes[fmin]);
-  //Stunden
+  //Hours
   int32_t hours = t->tm_hour ;
   int fhours = getHours(minutes, hours);
   text_layer_set_text(bav_text_layer[1], bav_hours[fhours]);
-  // Uhrzeit Anzeige
-  /*
-  char *uhrzeit = malloc(sizeof(char) * 60);
-  snprintf(uhrzeit,60,"%2d:%2d:%2d",((int)hours),((int)minutes),((int)seconds));
-  text_layer_set_text(bav_text_layer[2], uhrzeit);
-  */
+
 
   static char time_buffer[] = "00:00:00";
   strftime(time_buffer, sizeof(time_buffer), "%H:%M:%S", t);
   text_layer_set_text(bav_text_layer[2], time_buffer);
 
-  //Wochentag
+  //Week day
   int32_t day = t->tm_wday ;
   int32_t mday = t->tm_mday;
   char *tag = malloc(sizeof(char) * 15);
   snprintf(tag,15,"%s da %d.",bav_days[day],((int)mday));
   text_layer_set_text(bav_text_layer[3], tag);
-  //text_layer_set_text(bav_text_layer[3], bav_days[day]);
 
   //Buetooth?
   if (bluetooth_connection_service_peek()) {
@@ -61,19 +54,20 @@ static void bav_update_proc(Layer *layer, GContext *ctx) {
       }
   }
 }
-/****** Ende alle Sekunden ********/
+//End all Seconds
 
+//Initial setup after loading window
 static void window_load(Window *window) {
 
   Layer *window_layer = window_get_root_layer(window);
 
   GRect bounds = layer_get_bounds(window_layer);
-  //Hintergrund
+  //Background
   flag_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BAV_FLAG);
   flag_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(flag_layer, flag_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(flag_layer));
-  //Alle Ebenen erstellen
+  //Create layers
   int text_Size=30;
   int bold = 2;
   for (int i=0; i<4; i++) {
@@ -95,8 +89,8 @@ static void window_load(Window *window) {
     text_layer_set_text_alignment(bav_text_layer[i], GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(bav_text_layer[i]));
   }
-  //Bluetooth Symbol
-  // bt_ok_bitmap, *bt_not_ok_bitmap;
+  //Bluetooth symbol
+
   hasbluetooth=false;
   bt_ok_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BT_OK);
   bt_not_ok_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BT_NOK);
@@ -123,21 +117,19 @@ static void init(void) {
   #endif
   window_stack_push(window, true);
 
-  //window_set_fullscreen(window, true);
   window_set_background_color(window, GColorBlack);
-  //Alle Sekunden...
+  /Update all seconds
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
 }
 
 static void deinit(void) {
-//  layer_destroy(window_layer);
   text_layer_destroy(bav_text_layer[0]);
   window_destroy(window);
 }
 
 int main(void) {
   init();
-
+  //Generated
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Done initializing, pushed window: %p", window);
 
   app_event_loop();

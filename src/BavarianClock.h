@@ -1,3 +1,5 @@
+/* Bavarian Language */
+
 const char* bav_minutes[] = {
   "Akurrat",
   "Fünf noch",
