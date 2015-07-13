@@ -118,7 +118,7 @@ static void init(void) {
   window_stack_push(window, true);
 
   window_set_background_color(window, GColorBlack);
-  /Update all seconds
+  //Update all seconds
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
 }
 

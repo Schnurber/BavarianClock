@@ -52,7 +52,7 @@ const char* bav_days[] = {
 };
 static int getHours(int minutes, int hours) {
 
-  if (minutes>20) {
+  if (minutes>=15) {
     hours ++; //Ab Viertel
     if (hours >23) { // Dann wieder von vorn
       hours =0;
